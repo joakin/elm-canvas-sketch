@@ -1,4 +1,4 @@
-index.html: elm.js
+public/index.html: public/elm.js
 
-elm.js: $(wildcard src/*.elm)
+public/elm.js: $(wildcard src/*.elm)
 	elm make src/Main.elm --output=public/elm.js
