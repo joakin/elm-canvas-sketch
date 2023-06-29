@@ -6,70 +6,64 @@ import Canvas exposing (..)
 import Canvas.Settings exposing (..)
 import Canvas.Settings.Advanced exposing (..)
 import Color
-import Html exposing (Html, div)
-import Html.Attributes exposing (style)
+import Html exposing (Html)
 
 
-type alias Model =
-    { count : Float }
+type alias Dimensions =
+    { width : Float, height : Float }
+
+
+type alias Context =
+    { count : Float, width : Float, height : Float }
 
 
 type Msg
     = Frame Float
 
 
-main : Program () Model Msg
+main : Program Dimensions Context Msg
 main =
     Browser.element
-        { init = \() -> ( { count = 0 }, Cmd.none )
+        { init =
+            \{ width, height } ->
+                ( { width = width
+                  , height = height
+                  , count = 0
+                  }
+                , Cmd.none
+                )
         , view = view
         , update =
-            \msg model ->
+            \msg context ->
                 case msg of
                     Frame _ ->
-                        ( { model | count = model.count + 1 }, Cmd.none )
-        , subscriptions = \model -> onAnimationFrameDelta Frame
+                        ( { context | count = context.count + 1 }, Cmd.none )
+        , subscriptions = \_ -> onAnimationFrameDelta Frame
         }
 
 
-width =
-    400
-
-
-height =
-    400
-
-
-centerX =
-    width / 2
-
-
-centerY =
-    height / 2
-
-
-view : Model -> Html Msg
-view { count } =
-    div
-        [ style "display" "flex"
-        , style "justify-content" "center"
-        , style "align-items" "center"
-        ]
-        [ Canvas.toHtml
-            ( width, height )
-            [ style "border" "10px solid rgba(0,0,0,0.1)" ]
-            [ clearScreen
-            , render count
-            ]
+view : Context -> Html Msg
+view ({ width, height } as context) =
+    Canvas.toHtml
+        ( round width, round height )
+        []
+        [ clearScreen context
+        , render context
         ]
 
 
-clearScreen =
+clearScreen { width, height } =
     shapes [ fill Color.white ] [ rect ( 0, 0 ) width height ]
 
 
-render count =
+render { count, width, height } =
     let
+        centerX =
+            width / 2
+
+        centerY =
+            height / 2
+
         size =
             width / 3
 
@@ -82,8 +76,8 @@ render count =
     shapes
         [ transform
             [ translate centerX centerY
-            , rotate (degrees (count * 3))
+            , rotate (degrees (count / 3))
             ]
-        , fill (Color.hsl (degrees (count / 4)) 0.3 0.7)
+        , fill (Color.hsl (sin <| count / 1000) 0.7 0.7)
         ]
         [ rect ( x, y ) size size ]
